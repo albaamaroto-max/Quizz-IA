@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IA en el trabajo — Quiz Verdadero/Falso</title>
+
+  <!-- Tailwind CSS desde CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["ui-sans-serif", "system-ui", "Segoe UI", "Roboto", "Inter", "Arial"]
+          },
+          boxShadow: {
+            glow: "0 0 0 1px rgba(255,255,255,.08), 0 18px 60px rgba(0,0,0,.35)",
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    .pop { animation: pop .18s ease-out; }
+    @keyframes pop { from { transform: scale(.98); opacity: .85; } to { transform: scale(1); opacity: 1; } }
+
+    .fade-in { animation: fade .25s ease-out; }
+    @keyframes fade { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
+
+    .shake { animation: shake .25s ease-in-out; }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+
+    /* Scrollbar sutil (opcional) */
+    ::-webkit-scrollbar { width: 10px; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.16); border-radius: 999px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,.2); }
+  </style>
+</head>
+
+<body class="min-h-screen font-sans text-white">
+  <!-- Fondo con degradados -->
+  <div class="fixed inset-0 -z-10">
+    <div class="absolute inset-0 bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950"></div>
+    <div class="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-fuchsia-500/20 blur-3xl"></div>
+    <div class="absolute top-20 -right-24 h-72 w-72 rounded-full bg-cyan-400/20 blur-3xl"></div>
+    <div class="absolute bottom-0 left-1/4 h-72 w-72 rounded-full bg-indigo-400/10 blur-3xl"></div>
+  </div>
+
+  <main class="mx-auto max-w-3xl px-4 py-10 md:py-14">
+
+    <!-- Header -->
+    <header class="mb-8 md:mb-10">
+      <div class="inline-flex items-center gap-2 rounded-full bg-white/8 px-3 py-1 text-sm text-white/80 ring-1 ring-white/10">
+        <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
+        Juego rápido — IA en el trabajo
+      </div>
+
+      <h1 class="mt-4 text-3xl md:text-5xl font-extrabold tracking-tight">
+        ¿Verdadero o Falso?
+        <span class="block bg-gradient-to-r from-cyan-300 via-fuchsia-200 to-indigo-200 bg-clip-text text-transparent">
+          Aprende usos prácticos de IA para el trabajo
+        </span>
+      </h1>
+
+      <p class="mt-3 text-white/80 leading-relaxed">
+        Te mostraré frases sobre funcionalidades típicas de herramientas tipo Copilot/ChatGPT.
+        Algunas son ciertas y otras no. ¡Acierta el máximo posible!
+      </p>
+    </header>
+
+    <!-- App Card -->
+    <section class="rounded-3xl bg-white/8 p-5 md:p-7 shadow-glow ring-1 ring-white/10 backdrop-blur">
+
+      <!-- Top bar -->
+      <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div class="flex items-center gap-3">
+          <div class="rounded-2xl bg-white/10 px-3 py-2 ring-1 ring-white/10">
+            <div class="text-xs text-white/70">Progreso</div>
+            <div class="text-lg font-bold"><span id="qIndex">1</span>/<span id="qTotal">6</span></div>
+          </div>
+
+          <div class="rounded-2xl bg-white/10 px-3 py-2 ring-1 ring-white/10">
+            <div class="text-xs text-white/70">Aciertos</div>
+            <div class="text-lg font-bold text-emerald-300" id="scoreOK">0</div>
+          </div>
+
+          <div class="rounded-2xl bg-white/10 px-3 py-2 ring-1 ring-white/10">
+            <div class="text-xs text-white/70">Fallos</div>
+            <div class="text-lg font-bold text-rose-300" id="scoreBad">0</div>
+          </div>
+        </div>
+
+        <button id="btnRestartTop"
+          class="rounded-2xl bg-white/10 px-4 py-2 text-sm font-semibold ring-1 ring-white/10 hover:bg-white/15 active:scale-[0.98] transition">
+          Reiniciar
+        </button>
+      </div>
+
+      <!-- Progress bar -->
+      <div class="mt-5 h-2 w-full overflow-hidden rounded-full bg-white/10 ring-1 ring-white/10">
+        <div id="progressBar"
+             class="h-full w-0 rounded-full bg-gradient-to-r from-emerald-400 via-cyan-300 to-fuchsia-300 transition-all duration-300"></div>
+      </div>
+
+      <!-- Question card -->
+      <div id="questionCard" class="mt-6 rounded-3xl bg-slate-950/35 p-5 md:p-7 ring-1 ring-white/10">
+        <div>
+          <div class="text-sm text-white/70">Frase:</div>
+          <h2 id="questionText" class="mt-2 text-xl md:text-2xl font-bold leading-snug"></h2>
+        </div>
+
+        <!-- Buttons -->
+        <div class="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <button id="btnTrue"
+            class="rounded-2xl bg-emerald-500/15 px-5 py-4 text-base font-bold ring-1 ring-emerald-400/30 hover:bg-emerald-500/22 active:scale-[0.99] transition">
+            ✅ Verdadero
+          </button>
+
+          <button id="btnFalse"
+            class="rounded-2xl bg-rose-500/15 px-5 py-4 text-base font-bold ring-1 ring-rose-400/30 hover:bg-rose-500/22 active:scale-[0.99] transition">
+            ❌ Falso
+          </button>
+        </div>
+
+        <!-- Feedback -->
+        <div id="feedback" class="mt-5 hidden rounded-2xl p-4 ring-1 ring-white/10">
+          <div class="flex items-start gap-3">
+            <div id="feedbackIcon" class="mt-0.5 text-2xl">🎉</div>
+            <div class="min-w-0">
+              <div id="feedbackTitle" class="font-extrabold text-lg"></div>
+              <p id="feedbackText" class="mt-2 text-white/85 leading-relaxed"></p>
+              <div id="promptTipWrap" class="mt-3 hidden rounded-xl bg-white/5 p-3 ring-1 ring-white/10">
+                <div class="text-xs font-semibold text-white/70">Ejemplo de prompt (opcional)</div>
+                <div id="promptTip" class="mt-1 text-sm text-white/85"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <button id="btnNext"
+              class="w-full rounded-2xl bg-white/10 px-5 py-3 text-sm font-bold ring-1 ring-white/10 hover:bg-white/15 active:scale-[0.98] transition">
+              Siguiente →
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- End screen -->
+      <div id="endScreen" class="mt-6 hidden rounded-3xl bg-slate-950/35 p-6 md:p-8 ring-1 ring-white/10 fade-in">
+        <h3 class="text-2xl md:text-3xl font-extrabold">¡Fin del juego! 🚀</h3>
+
+        <p class="mt-3 text-white/80 leading-relaxed">
+          <span class="font-bold text-white">¿Te has dado cuenta de todo en lo que puede ayudarte la IA?</span>
+          ¡No pierdas más tiempo y comienza a utilizar la herramienta!
+        </p>
+
+        <div class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div class="rounded-2xl bg-white/10 p-4 ring-1 ring-white/10">
+            <div class="text-xs text-white/70">Aciertos</div>
+            <div class="mt-1 text-2xl font-extrabold text-emerald-300" id="finalOK">0</div>
+          </div>
+          <div class="rounded-2xl bg-white/10 p-4 ring-1 ring-white/10">
+            <div class="text-xs text-white/70">Fallos</div>
+            <div class="mt-1 text-2xl font-extrabold text-rose-300" id="finalBad">0</div>
+          </div>
+          <div class="rounded-2xl bg-white/10 p-4 ring-1 ring-white/10">
+            <div class="text-xs text-white/70">Mejor racha</div>
+            <div class="mt-1 text-2xl font-extrabold text-cyan-200" id="finalStreak">0</div>
+          </div>
+        </div>
+
+        <div class="mt-6">
+          <button id="btnRestart"
+            class="w-full rounded-2xl bg-gradient-to-r from-emerald-400/25 to-cyan-400/25 px-5 py-3 text-sm font-bold ring-1 ring-white/10 hover:from-emerald-400/30 hover:to-cyan-400/30 active:scale-[0.98] transition">
+            Jugar otra vez
+          </button>
+        </div>
+
+        <p class="mt-4 text-xs text-white/55">
+          *Funciona 100% en tu navegador. No guarda datos personales ni necesita servidor.
+        </p>
+      </div>
+    </section>
+
+    <footer class="mt-8 text-center text-xs text-white/55">
+      Consejo: si la frase te parece “demasiado mágica”, probablemente sea Falso 😉
+    </footer>
+  </main>
+
+  <script>
+    // =============================
+    // Banco de 6 preguntas (con explicación más desarrollada)
+    // + promptTip opcional para hacerlo más útil/educativo
+    // =============================
+    const QUESTIONS_BASE = [
+      {
+        text: "La IA puede traducir textos a otros idiomas manteniendo el sentido general del mensaje.",
+        answer: true,
+        explain:
+          "🎯 En general, esto es VERDADERO. La mayoría de asistentes de IA (y traductores basados en IA) pueden traducir texto con un nivel muy aceptable, " +
+          "especialmente si se trata de frases o párrafos no demasiado técnicos. Aun así, conviene revisar expresiones, nombres propios, fechas y matices culturales " +
+          "porque una traducción literal puede sonar poco natural o perder intención. Si el texto es importante (legal, médico, contractual), revisa o valida con alguien experto.",
+        promptTip: "Traduce este texto al inglés con tono profesional y manteniendo el significado: «[pega aquí tu texto]». Devuélvemelo en 2 versiones: formal y cercana."
+      },
+      {
+        text: "La IA puede programar reuniones en tu calendario sin que tú des contexto ni permisos.",
+        answer: false,
+        explain:
+          "❗ Esto suele ser FALSO. Para crear eventos, invitar personas o reservar salas, una herramienta necesita permisos y acceso al calendario, " +
+          "además de información mínima (fecha, duración, asistentes, objetivo). Sin integraciones, lo más habitual es que la IA solo pueda SUGERIR " +
+          "un borrador de invitación o proponer horarios, pero no ejecutar la acción por sí sola.",
+        promptTip: "Ayúdame a preparar una invitación de reunión: objetivo, agenda en 3 puntos, duración 30 min y tono profesional. Contexto: [tema y asistentes]."
+      },
+      {
+        text: "Puedes pedir a la IA que convierta una lista de tareas en un plan semanal con prioridades.",
+        answer: true,
+        explain:
+          "✅ VERDADERO en la práctica. Si le das tu lista de tareas y contexto (fechas límite, impacto, dependencias, tiempo estimado), la IA puede ayudarte a priorizar " +
+          "y a proponer un calendario semanal realista. No “adivina” tu capacidad, así que es clave decirle cuántas horas disponibles tienes y qué tareas son imprescindibles. " +
+          "Úsalo como asistente de planificación: tú decides la prioridad final.",
+        promptTip: "Tengo estas tareas: [lista]. Dispongo de [X] horas al día y estas fechas límite: [fechas]. Ordénalas por prioridad y créame un plan de lunes a viernes."
+      },
+      {
+        text: "La IA redacta siempre mensajes perfectos, así que no es necesario revisarlos.",
+        answer: false,
+        explain:
+          "🚫 FALSO. La IA puede redactar muy bien, pero no es infalible: puede equivocarse con datos, inventar detalles, sonar demasiado segura o usar un tono que no encaje " +
+          "con tu cultura de empresa. Además, puede malinterpretar el contexto si no se lo das. Lo recomendable es tratar el texto como un primer borrador: revisa, ajusta y " +
+          "asegúrate de que el mensaje es correcto y apropiado antes de enviarlo.",
+        promptTip: "Reescribe este correo para que sea claro y amable. Mantén el contenido, acorta un 20% y añade una frase final de cierre: [pega el correo]."
+      },
+      {
+        text: "Puedes pedir a la IA que reescriba un texto para hacerlo más claro o profesional.",
+        answer: true,
+        explain:
+          "🎉 VERDADERO y muy útil para cualquier perfil. Puedes mejorar claridad, estructura, tono y corrección en segundos. Funciona especialmente bien si le indicas " +
+          "quién es la audiencia (cliente, jefe, equipo), el tono (formal, cercano, directo) y el formato (bullet points, párrafos, asunto + cuerpo). " +
+          "Cuanto más concreto seas, más “a medida” quedará el resultado.",
+        promptTip: "Reescribe este texto para un cliente, tono profesional y claro. Añade un asunto y resume en 3 bullets al final: [pega el texto]."
+      },
+      {
+        text: "La IA nunca se inventa datos y siempre ofrece información verificable.",
+        answer: false,
+        explain:
+          "⚠️ FALSO. Aunque muchas veces acierta, la IA puede generar información incorrecta o inventada (por ejemplo, cifras, fechas o detalles) con apariencia convincente. " +
+          "Por eso, cuando el contenido es sensible o factual, conviene pedir fuentes, comprobar con documentos oficiales o contrastar con varias referencias. " +
+          "La IA es excelente para ideas, borradores y estructura, pero la verificación final depende de ti.",
+        promptTip: "Dame una respuesta breve sobre [tema] y después lista 5 puntos a verificar con fuentes. Si no estás seguro de un dato, indícalo explícitamente."
+      }
+    ];
+
+    // Estado
+    let questions = [];
+    let current = 0;
+    let ok = 0;
+    let bad = 0;
+    let streak = 0;
+    let bestStreak = 0;
+    let locked = false;
+
+    // UI
+    const qIndex = document.getElementById("qIndex");
+    const qTotal = document.getElementById("qTotal");
+    const qText = document.getElementById("questionText");
+    const progressBar = document.getElementById("progressBar");
+
+    const btnTrue = document.getElementById("btnTrue");
+    const btnFalse = document.getElementById("btnFalse");
+    const btnNext = document.getElementById("btnNext");
+    const btnRestart = document.getElementById("btnRestart");
+    const btnRestartTop = document.getElementById("btnRestartTop");
+
+    const scoreOK = document.getElementById("scoreOK");
+    const scoreBad = document.getElementById("scoreBad");
+
+    const feedback = document.getElementById("feedback");
+    const feedbackIcon = document.getElementById("feedbackIcon");
+    const feedbackTitle = document.getElementById("feedbackTitle");
+    const feedbackText = document.getElementById("feedbackText");
+    const promptTipWrap = document.getElementById("promptTipWrap");
+    const promptTip = document.getElementById("promptTip");
+
+    const questionCard = document.getElementById("questionCard");
+    const endScreen = document.getElementById("endScreen");
+    const finalOK = document.getElementById("finalOK");
+    const finalBad = document.getElementById("finalBad");
+    const finalStreak = document.getElementById("finalStreak");
+
+    function shuffle(arr) {
+      return [...arr].sort(() => Math.random() - 0.5);
+    }
+
+    function setProgress() {
+      const total = questions.length;
+      const pct = Math.round((current / total) * 100);
+      progressBar.style.width = pct + "%";
+    }
+
+    function paintQuestion() {
+      locked = false;
+      feedback.classList.add("hidden");
+      feedback.classList.remove("fade-in");
+      promptTipWrap.classList.add("hidden");
+
+      qIndex.textContent = current + 1;
+      qTotal.textContent = questions.length;
+      qText.textContent = questions[current].text;
+
+      qText.classList.remove("pop");
+      void qText.offsetWidth;
+      qText.classList.add("pop");
+
+      setProgress();
+      scoreOK.textContent = ok;
+      scoreBad.textContent = bad;
+    }
+
+    function showFeedback(correct, explanation, tipText) {
+      feedback.classList.remove("hidden");
+      feedback.classList.add("fade-in");
+
+      if (correct) {
+        feedback.className = "mt-5 rounded-2xl p-4 ring-1 ring-emerald-300/25 bg-emerald-500/10 fade-in";
+        feedbackIcon.textContent = "🎉"; // confeti para correcto (evita confusión con ✅ de Verdadero)
+        feedbackTitle.textContent = "¡Correcto!";
+        feedbackTitle.className = "font-extrabold text-emerald-200 text-lg";
+      } else {
+        feedback.className = "mt-5 rounded-2xl p-4 ring-1 ring-rose-300/25 bg-rose-500/10 fade-in";
+        feedbackIcon.textContent = "💥";
+        feedbackTitle.textContent = "Oops…";
+        feedbackTitle.className = "font-extrabold text-rose-200 text-lg";
+      }
+
+      feedbackText.textContent = explanation;
+
+      // Mostrar tip de prompt si existe
+      if (tipText && tipText.trim().length > 0) {
+        promptTip.textContent = tipText;
+        promptTipWrap.classList.remove("hidden");
+      } else {
+        promptTipWrap.classList.add("hidden");
+      }
+    }
+
+    function answer(userAnswer) {
+      if (locked) return;
+      locked = true;
+
+      const q = questions[current];
+      const correct = (userAnswer === q.answer);
+
+      if (correct) {
+        ok++;
+        streak++;
+        bestStreak = Math.max(bestStreak, streak);
+      } else {
+        bad++;
+        streak = 0;
+        questionCard.classList.add("shake");
+        setTimeout(() => questionCard.classList.remove("shake"), 300);
+      }
+
+      scoreOK.textContent = ok;
+      scoreBad.textContent = bad;
+
+      showFeedback(correct, q.explain, q.promptTip || "");
+    }
+
+    function next() {
+      if (current < questions.length - 1) {
+        current++;
+        paintQuestion();
+      } else {
+        finish();
+      }
+    }
+
+    function finish() {
+      progressBar.style.width = "100%";
+      questionCard.classList.add("hidden");
+      endScreen.classList.remove("hidden");
+
+      finalOK.textContent = ok;
+      finalBad.textContent = bad;
+      finalStreak.textContent = bestStreak;
+    }
+
+    function restart() {
+      questions = shuffle(QUESTIONS_BASE);
+      current = 0;
+      ok = 0;
+      bad = 0;
+      streak = 0;
+      bestStreak = 0;
+      locked = false;
+
+      endScreen.classList.add("hidden");
+      questionCard.classList.remove("hidden");
+      paintQuestion();
+    }
+
+    // Eventos
+    btnTrue.addEventListener("click", () => answer(true));
+    btnFalse.addEventListener("click", () => answer(false));
+    btnNext.addEventListener("click", next);
+    btnRestart?.addEventListener("click", restart);
+    btnRestartTop.addEventListener("click", restart);
+
+    // Teclas: V y F / Enter para siguiente (si hay feedback visible)
+    window.addEventListener("keydown", (e) => {
+      if (!endScreen.classList.contains("hidden")) return;
+
+      const key = e.key.toLowerCase();
+      if (key === "v") answer(true);
+      if (key === "f") answer(false);
+      if (key === "enter" && !feedback.classList.contains("hidden")) next();
+    });
+
+    // Init
+    restart();
+  </script>
+</body>
+</html>
+``
